@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punch-Out Time Calculator</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            margin: 40px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        input[type=time] {
+            padding: 6px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+
+        .add {
+            background: #2196F3;
+            color: white;
+        }
+
+        .calc {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .deleteBtn {
+            background: #f44336;
+            color: white;
+            padding: 6px 10px;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eef7ee;
+            border-left: 5px solid green;
+            line-height: 1.8;
+        }
+
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Employee Punch-Out Time Calculator</h2>
+
+        <label>Total Working Hours Required</label><br>
+        <input type="text" id="requiredHours" placeholder="Example: 9 or 8:30" value="9">
+
+        <table id="sessions">
+            <thead>
+                <tr>
+                    <th>Punch In</th>
+                    <th>Punch Out</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td><input type="time"></td>
+                    <td><input type="time"></td>
+                    <td><button class="deleteBtn" onclick="removeRow(this)">X</button></td>
+                </tr>
+
+            </tbody>
+        </table>
+
+        <button class="add" onclick="addRow()">+ Add Session</button>
+        <button class="calc" onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result">
+            Enter your timings and click Calculate.
+        </div>
+
+    </div>
+
+    <script>
+
+        function addRow() {
+
+            const tbody = document.querySelector("#sessions tbody");
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+<td><input type="time"></td>
+<td><input type="time"></td>
+<td><button class="deleteBtn" onclick="removeRow(this)">X</button></td>
+`;
+
+            tbody.appendChild(row);
+
+        }
+
+        function removeRow(btn) {
+            btn.parentNode.parentNode.remove();
+        }
+
+        function toMinutes(time) {
+
+            if (!time) return null;
+
+            let p = time.split(":");
+
+            return parseInt(p[0]) * 60 + parseInt(p[1]);
+
+        }
+
+        function minutesToTime(min) {
+
+            min = Math.round(min);
+
+            let h = Math.floor(min / 60) % 12;
+            let m = min % 60;
+            let ampm = Math.floor(min / 60) >= 12 ? "PM" : "AM";
+
+            return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + " " + ampm;
+
+        }
+
+        function parseRequiredHours(value) {
+
+            value = value.trim();
+
+            if (value.includes(":")) {
+                let p = value.split(":");
+                return parseInt(p[0]) * 60 + parseInt(p[1]);
+            }
+
+            return parseFloat(value) * 60;
+
+        }
+
+        function formatDuration(mins) {
+
+            mins = Math.round(mins);
+
+            let h = Math.floor(mins / 60);
+            let m = mins % 60;
+
+            return h + "h " + m + "m";
+
+        }
+
+        function calculate() {
+
+            let rows = document.querySelectorAll("#sessions tbody tr");
+
+            let totalWorked = 0;
+
+            let totalBreaks = 0;
+
+            let lastOpenSession = null;
+
+            let prevOutTime = null; // track previous session's out time to compute breaks
+
+            rows.forEach(row => {
+
+                let inputs = row.querySelectorAll("input");
+
+                let inTime = toMinutes(inputs[0].value);
+                let outTime = toMinutes(inputs[1].value);
+
+                if (inTime !== null && outTime !== null) {
+
+                    if (outTime < inTime) {
+                        outTime += 24 * 60;
+                    }
+
+                    // if we have a previous out time, calculate break between sessions
+                    if (prevOutTime !== null) {
+                        let breakMinutes = inTime - prevOutTime;
+                        if (breakMinutes < 0) breakMinutes += 24 * 60;
+                        if (breakMinutes > 0) totalBreaks += breakMinutes;
+                    }
+
+                    totalWorked += outTime - inTime;
+                    prevOutTime = outTime;
+                    
+                }
+
+                else if (inTime !== null && outTime === null) {
+
+                    // open session started; calculate break from previous out to this in
+                    if (prevOutTime !== null) {
+                        let breakMinutes = inTime - prevOutTime;
+                        if (breakMinutes < 0) breakMinutes += 24 * 60;
+                        if (breakMinutes > 0) totalBreaks += breakMinutes;
+                    }
+
+                    lastOpenSession = inTime;
+
+                }
+
+            });
+
+            totalWorked += lastOpenSession !== null ? (new Date()).getHours() * 60 + (new Date()).getMinutes() - lastOpenSession : 0;
+
+            let required = parseRequiredHours(document.getElementById("requiredHours").value);
+
+            let remaining = required - totalWorked;
+
+            let html = "";
+
+            html += "<b>Total Worked:</b> " + formatDuration(totalWorked) + "<br>";
+
+            html += "<b>Total Breaks:</b> " + formatDuration(totalBreaks) + "<br>";
+
+            if (remaining <= 0) {
+
+                html += "<b>Status:</b> ✔ Target already completed.";
+
+            }
+
+            else {
+
+                html += "<b>Remaining:</b> " + formatDuration(remaining) + "<br>";
+
+                if (lastOpenSession !== null) {
+
+                    let estimated = remaining + (new Date()).getHours() * 60 + (new Date()).getMinutes();
+
+                    html += "<b>Estimated Final Punch-Out:</b> <span style='font-size:22px;color:green;'>" + minutesToTime(estimated) + "</span>";
+
+                } else {
+
+                    html += "<span style='color:#888'>Add your current Punch In time without Punch Out to calculate the estimated leaving time.</span>";
+
+                }
+
+            }
+
+            document.getElementById("result").innerHTML = html;
+
+        }
+
+    </script>
+
+</body>
+
+</html>
