@@ -1,291 +1,533 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punch-Out Time Calculator</title>
-
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f6f8;
-            margin: 40px;
-        }
-
-        .container {
-            max-width: 850px;
-            margin: auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background: #f2f2f2;
-        }
-
-        input[type=time] {
-            padding: 6px;
-        }
-
-        button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 15px;
-            margin-right: 10px;
-        }
-
-        .add {
-            background: #2196F3;
-            color: white;
-        }
-
-        .calc {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .deleteBtn {
-            background: #f44336;
-            color: white;
-            padding: 6px 10px;
-        }
-
-        .result {
-            margin-top: 25px;
-            padding: 15px;
-            background: #eef7ee;
-            border-left: 5px solid green;
-            line-height: 1.8;
-        }
-
-        label {
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Workday — Punch-Out Calculator</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --text: #172033;
+    --muted: #68758b;
+    --line: #e2e8f0;
+    --accent: #315efb;
+    --accent-soft: #edf1ff;
+    --green: #138a5b;
+    --green-soft: #e7f7ef;
+    --amber: #a55b08;
+    --amber-soft: #fff4df;
+    --red: #bd3342;
+    --red-soft: #fff0f1;
+    --shadow: 0 12px 34px rgba(28, 44, 76, .07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  .app { max-width: 1120px; margin: 0 auto; padding: 30px 20px 44px; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { display:grid; place-items:center; width:46px; height:46px; border-radius:14px; color:#fff; background:linear-gradient(135deg,#315efb,#714cf6); font-size:23px; box-shadow:0 8px 18px #315efb33; }
+  h1 { font-size:clamp(24px,3vw,32px); letter-spacing:-.8px; margin:0; }
+  .subtitle { color:var(--muted); font-size:14px; margin-top:3px; }
+  .date-pill { border:1px solid var(--line); background:var(--panel); padding:10px 13px; border-radius:12px; font-size:13px; color:var(--muted); white-space:nowrap; }
+  .hero { display:grid; grid-template-columns:1.4fr .9fr; gap:18px; margin-bottom:18px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); }
+  .hero-main { padding:24px; position:relative; overflow:hidden; }
+  .hero-main:after { content:""; position:absolute; width:220px;height:220px;right:-90px;top:-105px;border-radius:50%;background:#315efb0b;pointer-events:none; }
+  .eyebrow { text-transform:uppercase; letter-spacing:1.3px; font-weight:750; font-size:11px; color:var(--muted); }
+  .estimate { font-size:clamp(36px,5vw,52px); font-weight:800; letter-spacing:-1.8px; margin:8px 0 2px; line-height:1.12; }
+  .estimate-caption { color:var(--muted); font-size:14px; }
+  .status-line { display:flex; align-items:center; gap:8px; margin-top:18px; font-size:13px; color:var(--muted); }
+  .dot { width:8px;height:8px;border-radius:50%;background:var(--green); }
+  .hero-side { padding:24px; display:flex; flex-direction:column; justify-content:center; }
+  .live-time { font-size:30px; font-weight:800; letter-spacing:-.7px; margin:6px 0 3px; font-variant-numeric:tabular-nums; }
+  .live-label { color:var(--muted); font-size:13px; }
+  .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:18px; }
+  button { font:inherit; cursor:pointer; border:0; border-radius:11px; padding:11px 15px; font-weight:700; transition:transform .12s,opacity .12s; }
+  button:hover { transform:translateY(-1px); }
+  button:disabled { cursor:not-allowed; opacity:.45; transform:none; }
+  .btn-primary { color:#fff; background:var(--accent); }
+  .btn-dark { color:#fff; background:#172033; }
+  .btn-light { color:var(--text); background:#f0f3f8; border:1px solid var(--line); }
+  .btn-danger { color:var(--red); background:var(--red-soft); padding:7px 10px; font-size:12px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+  .metric { padding:18px 19px; }
+  .metric-head { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--muted); font-size:13px; }
+  .metric-icon { width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:16px; }
+  .metric-value { font-size:26px; font-weight:800; letter-spacing:-.7px; margin-top:11px; font-variant-numeric:tabular-nums; }
+  .metric-foot { color:var(--muted); font-size:12px; margin-top:3px; }
+  .progress-panel { padding:20px 22px; margin-bottom:18px; }
+  .section-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px; }
+  h2 { margin:0; font-size:17px; letter-spacing:-.3px; }
+  .progress-label { color:var(--muted); font-size:13px; }
+  .progress-track { height:10px; background:#edf0f6; border-radius:99px; overflow:hidden; }
+  .progress-fill { width:0%;height:100%;background:linear-gradient(90deg,#315efb,#18a879);border-radius:99px;transition:width .25s; }
+  .progress-bottom { display:flex; justify-content:space-between; gap:12px; margin-top:10px; font-size:12px; color:var(--muted); }
+  .content-grid { display:grid; grid-template-columns:1.3fr .7fr; gap:18px; align-items:start; }
+  .sessions-panel,.settings-panel { padding:22px; }
+  .session-list { display:flex; flex-direction:column; gap:10px; }
+  .session-row { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; border:1px solid var(--line); border-radius:13px; padding:13px; }
+  .session-row.active { border-color:#9eafff; background:#f8f9ff; }
+  .field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  label { color:var(--muted); font-size:12px; font-weight:700; }
+  input, select { width:100%; min-width:0; border:1px solid #d9e1ed; border-radius:9px; padding:10px 11px; background:#fff; color:var(--text); font:inherit; outline:none; }
+  input:focus,select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #315efb17; }
+  input[type="time"] { font-variant-numeric:tabular-nums; }
+  .session-meta { grid-column:1/-1; display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px; }
+  .session-meta strong { color:var(--text); }
+  .session-controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .hint { background:#f7f9fc; border:1px solid var(--line); border-radius:12px; padding:12px 13px; color:var(--muted); font-size:12px; margin-top:15px; }
+  .settings-panel .field { margin-bottom:15px; }
+  .target-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .summary-list { display:flex; flex-direction:column; gap:13px; margin-top:18px; }
+  .summary-item { display:flex; justify-content:space-between; gap:12px; font-size:13px; }
+  .summary-item span { color:var(--muted); }
+  .summary-item strong { font-variant-numeric:tabular-nums; text-align:right; }
+  .notice { display:none; padding:11px 13px; border-radius:11px; margin-bottom:14px; font-size:13px; }
+  .notice.show { display:block; }
+  .notice.error { background:var(--red-soft); color:var(--red); }
+  .notice.info { background:var(--amber-soft); color:var(--amber); }
+  .footer { text-align:center; color:var(--muted); font-size:12px; margin-top:20px; }
+  @media (max-width:850px) {
+    .hero,.content-grid { grid-template-columns:1fr; }
+    .metrics { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:540px) {
+    .app { padding:20px 12px 30px; }
+    .topbar { align-items:flex-start; flex-direction:column; }
+    .hero-main,.hero-side,.sessions-panel,.settings-panel { padding:18px; }
+    .metrics { gap:9px; }
+    .metric { padding:14px; }
+    .metric-value { font-size:22px; }
+    .session-row { grid-template-columns:1fr 1fr; }
+    .session-row .delete-wrap { grid-column:1/-1; display:flex; justify-content:flex-end; }
+    .session-meta { grid-column:1/-1; }
+    .progress-panel { padding:17px; }
+  }
+</style>
 </head>
-
 <body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">◷</div>
+      <div>
+        <h1>Workday Tracker</h1>
+        <div class="subtitle">A clearer picture of your working day.</div>
+      </div>
+    </div>
+    <div class="date-pill" id="todayLabel">Today</div>
+  </header>
 
-    <div class="container">
+  <section class="hero">
+    <div class="panel hero-main">
+      <div class="eyebrow">Estimated final punch-out</div>
+      <div class="estimate" id="estimateTime">— — : — —</div>
+      <div class="estimate-caption" id="estimateCaption">Add your punch times to calculate your leaving time.</div>
+      <div class="status-line"><span class="dot" id="statusDot"></span><span id="statusText">Ready to calculate</span></div>
+    </div>
+    <div class="panel hero-side">
+      <div class="eyebrow">Current local time</div>
+      <div class="live-time" id="currentClock">--:--:--</div>
+      <div class="live-label" id="currentDate">Using your device's local time</div>
+      <div class="actions">
+        <button class="btn-primary" id="punchInBtn" type="button">▶ Punch In</button>
+        <button class="btn-dark" id="punchOutBtn" type="button" disabled>■ Punch Out</button>
+      </div>
+    </div>
+  </section>
 
-        <h2>Employee Punch-Out Time Calculator</h2>
+  <section class="metrics">
+    <div class="panel metric">
+      <div class="metric-head"><span>Worked today</span><span class="metric-icon">✓</span></div>
+      <div class="metric-value" id="workedMetric">0h 00m</div>
+      <div class="metric-foot">Completed + current session</div>
+    </div>
+    <div class="panel metric">
+      <div class="metric-head"><span>Time remaining</span><span class="metric-icon">◷</span></div>
+      <div class="metric-value" id="remainingMetric">9h 00m</div>
+      <div class="metric-foot">Until your target is reached</div>
+    </div>
+    <div class="panel metric">
+      <div class="metric-head"><span>Break time</span><span class="metric-icon">☕</span></div>
+      <div class="metric-value" id="breakMetric">0h 00m</div>
+      <div class="metric-foot">Gaps between recorded sessions</div>
+    </div>
+    <div class="panel metric">
+      <div class="metric-head"><span>Overtime</span><span class="metric-icon">↗</span></div>
+      <div class="metric-value" id="overtimeMetric">0h 00m</div>
+      <div class="metric-foot">Time beyond your daily target</div>
+    </div>
+  </section>
 
-        <label>Total Working Hours Required</label><br>
-        <input type="text" id="requiredHours" placeholder="Example: 9 or 8:30" value="9">
+  <section class="panel progress-panel">
+    <div class="section-heading">
+      <h2>Daily progress</h2>
+      <div class="progress-label" id="progressPercent">0% complete</div>
+    </div>
+    <div class="progress-track" role="progressbar" aria-label="Daily work target progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-bottom"><span id="progressStart">0h completed</span><span id="progressEnd">Target: 9h 00m</span></div>
+  </section>
 
-        <table id="sessions">
-            <thead>
-                <tr>
-                    <th>Punch In</th>
-                    <th>Punch Out</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+  <div id="notice" class="notice" role="status"></div>
 
-            <tbody>
-
-                <tr>
-                    <td><input type="time"></td>
-                    <td><input type="time"></td>
-                    <td><button class="deleteBtn" onclick="removeRow(this)">X</button></td>
-                </tr>
-
-            </tbody>
-        </table>
-
-        <button class="add" onclick="addRow()">+ Add Session</button>
-        <button class="calc" onclick="calculate()">Calculate</button>
-
-        <div class="result" id="result">
-            Enter your timings and click Calculate.
-        </div>
-
+  <section class="content-grid">
+    <div class="panel sessions-panel">
+      <div class="section-heading">
+        <h2>Punch sessions</h2>
+        <button class="btn-light" type="button" id="addSessionBtn">＋ Add session</button>
+      </div>
+      <div class="session-list" id="sessionList"></div>
+      <div class="session-controls">
+        <button class="btn-primary" type="button" id="calculateBtn">Recalculate</button>
+        <button class="btn-light" type="button" id="clearBtn">Clear today's entries</button>
+      </div>
+      <div class="hint">
+        <strong>How breaks are counted:</strong> time between a completed punch-out and the next punch-in is treated as break time, not working time. Leave the punch-out empty for an active session. This page does not save your entries after you close or refresh it.
+      </div>
     </div>
 
-    <script>
-
-        function addRow() {
-
-            const tbody = document.querySelector("#sessions tbody");
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-<td><input type="time"></td>
-<td><input type="time"></td>
-<td><button class="deleteBtn" onclick="removeRow(this)">X</button></td>
-`;
-
-            tbody.appendChild(row);
-
-        }
-
-        function removeRow(btn) {
-            btn.parentNode.parentNode.remove();
-        }
-
-        function toMinutes(time) {
-
-            if (!time) return null;
-
-            let p = time.split(":");
-
-            return parseInt(p[0]) * 60 + parseInt(p[1]);
-
-        }
-
-        function minutesToTime(min) {
-
-            min = Math.round(min);
-
-            let h = Math.floor(min / 60) % 12;
-            let m = min % 60;
-            let ampm = Math.floor(min / 60) >= 12 ? "PM" : "AM";
-
-            return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") + " " + ampm;
-
-        }
-
-        function parseRequiredHours(value) {
-
-            value = value.trim();
-
-            if (value.includes(":")) {
-                let p = value.split(":");
-                return parseInt(p[0]) * 60 + parseInt(p[1]);
-            }
-
-            return parseFloat(value) * 60;
-
-        }
-
-        function formatDuration(mins) {
-
-            mins = Math.round(mins);
-
-            let h = Math.floor(mins / 60);
-            let m = mins % 60;
-
-            return h + "h " + m + "m";
-
-        }
-
-        function calculate() {
-
-            let rows = document.querySelectorAll("#sessions tbody tr");
-
-            let totalWorked = 0;
-
-            let totalBreaks = 0;
-
-            let lastOpenSession = null;
-
-            let prevOutTime = null; // track previous session's out time to compute breaks
-
-            rows.forEach(row => {
-
-                let inputs = row.querySelectorAll("input");
-
-                let inTime = toMinutes(inputs[0].value);
-                let outTime = toMinutes(inputs[1].value);
-
-                if (inTime !== null && outTime !== null) {
-
-                    if (outTime < inTime) {
-                        outTime += 24 * 60;
-                    }
-
-                    // if we have a previous out time, calculate break between sessions
-                    if (prevOutTime !== null) {
-                        let breakMinutes = inTime - prevOutTime;
-                        if (breakMinutes < 0) breakMinutes += 24 * 60;
-                        if (breakMinutes > 0) totalBreaks += breakMinutes;
-                    }
-
-                    totalWorked += outTime - inTime;
-                    prevOutTime = outTime;
-                    
-                }
-
-                else if (inTime !== null && outTime === null) {
-
-                    // open session started; calculate break from previous out to this in
-                    if (prevOutTime !== null) {
-                        let breakMinutes = inTime - prevOutTime;
-                        if (breakMinutes < 0) breakMinutes += 24 * 60;
-                        if (breakMinutes > 0) totalBreaks += breakMinutes;
-                    }
-
-                    lastOpenSession = inTime;
-
-                }
-
-            });
-
-            totalWorked += lastOpenSession !== null ? (new Date()).getHours() * 60 + (new Date()).getMinutes() - lastOpenSession : 0;
-
-            let required = parseRequiredHours(document.getElementById("requiredHours").value);
-
-            let remaining = required - totalWorked;
-
-            let html = "";
-
-            html += "<b>Total Worked:</b> " + formatDuration(totalWorked) + "<br>";
-
-            html += "<b>Total Breaks:</b> " + formatDuration(totalBreaks) + "<br>";
-
-            if (remaining <= 0) {
-
-                html += "<b>Status:</b> ✔ Target already completed.";
-
-            }
-
-            else {
-
-                html += "<b>Remaining:</b> " + formatDuration(remaining) + "<br>";
-
-                if (lastOpenSession !== null) {
-
-                    let estimated = remaining + (new Date()).getHours() * 60 + (new Date()).getMinutes();
-
-                    html += "<b>Estimated Final Punch-Out:</b> <span style='font-size:22px;color:green;'>" + minutesToTime(estimated) + "</span>";
-
-                } else {
-
-                    html += "<span style='color:#888'>Add your current Punch In time without Punch Out to calculate the estimated leaving time.</span>";
-
-                }
-
-            }
-
-            document.getElementById("result").innerHTML = html;
-
-        }
-
-    </script>
-
+    <aside class="panel settings-panel">
+      <div class="section-heading"><h2>Workday settings</h2></div>
+      <div class="field">
+        <label for="requiredHours">Required work hours</label>
+        <input id="requiredHours" type="text" value="9" placeholder="9 or 8:30" inputmode="decimal">
+      </div>
+      <div class="target-row">
+        <div class="field">
+          <label for="timeFormat">Time display</label>
+          <select id="timeFormat">
+            <option value="12">12-hour (AM/PM)</option>
+            <option value="24">24-hour</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rounding">Prediction rounding</label>
+          <select id="rounding">
+            <option value="1">Exact minute</option>
+            <option value="5">Nearest 5 minutes</option>
+            <option value="15">Nearest 15 minutes</option>
+          </select>
+        </div>
+      </div>
+      <div class="summary-list">
+        <div class="summary-item"><span>First punch-in</span><strong id="firstInSummary">—</strong></div>
+        <div class="summary-item"><span>Last punch-out</span><strong id="lastOutSummary">—</strong></div>
+        <div class="summary-item"><span>Elapsed span</span><strong id="elapsedSummary">0h 00m</strong></div>
+        <div class="summary-item"><span>Net work target</span><strong id="targetSummary">9h 00m</strong></div>
+      </div>
+      <div class="hint">Tip: you can type the target as decimal hours (for example, <strong>8.5</strong>) or hours and minutes (for example, <strong>8:30</strong>). Times use your device's local clock.</div>
+    </aside>
+  </section>
+  <div class="footer">Standalone tool · No account · No network requests · No data saved</div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const sessionList = $("sessionList");
+  let nextId = 1;
+  let sessions = [];
+  let activeSessionId = null;
+  let timerId = null;
+
+  const pad = n => String(n).padStart(2, "0");
+  const nowMinutes = () => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+  };
+  const timeInputValue = date => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const parseTime = value => {
+    if (!value) return null;
+    const parts = value.split(":").map(Number);
+    if (parts.length !== 2 || !parts.every(Number.isFinite) || parts[0] < 0 || parts[0] > 23 || parts[1] < 0 || parts[1] > 59) return null;
+    return parts[0] * 60 + parts[1];
+  };
+  const formatTime = totalMinutes => {
+    if (!Number.isFinite(totalMinutes)) return "—";
+    const rounded = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+    const h = Math.floor(rounded / 60), m = rounded % 60;
+    if ($("timeFormat").value === "24") return `${pad(h)}:${pad(m)}`;
+    const suffix = h >= 12 ? "PM" : "AM";
+    return `${(h % 12) || 12}:${pad(m)} ${suffix}`;
+  };
+  const duration = minutes => {
+    minutes = Math.max(0, Math.round(minutes || 0));
+    const h = Math.floor(minutes / 60), m = minutes % 60;
+    return `${h}h ${pad(m)}m`;
+  };
+  const parseTarget = value => {
+    const s = value.trim();
+    if (!s) return NaN;
+    if (s.includes(":")) {
+      const p = s.split(":");
+      if (p.length !== 2 || !/^\d+$/.test(p[0]) || !/^\d{1,2}$/.test(p[1])) return NaN;
+      const h = Number(p[0]), m = Number(p[1]);
+      if (m > 59 || h < 0 || (h === 0 && m === 0)) return NaN;
+      return h * 60 + m;
+    }
+    const n = Number(s);
+    if (!Number.isFinite(n) || n <= 0 || n > 24) return NaN;
+    return Math.round(n * 60);
+  };
+  const showNotice = (message, type = "info") => {
+    const n = $("notice");
+    n.textContent = message;
+    n.className = `notice show ${type}`;
+  };
+  const hideNotice = () => { $("notice").className = "notice"; };
+
+  function addSession(start = "", end = "", options = {}) {
+    const session = { id: nextId++, start, end, live: Boolean(options.live) };
+    sessions.push(session);
+    renderSessions();
+    return session;
+  }
+  function renderSessions() {
+    sessionList.innerHTML = "";
+    if (!sessions.length) {
+      const empty = document.createElement("div");
+      empty.className = "hint";
+      empty.textContent = "No sessions yet. Use Punch In for live tracking or Add session to enter times manually.";
+      sessionList.appendChild(empty);
+    }
+    sessions.forEach((s, index) => {
+      const row = document.createElement("div");
+      row.className = "session-row" + (s.id === activeSessionId ? " active" : "");
+      const startField = document.createElement("div");
+      startField.className = "field";
+      const startLabel = document.createElement("label");
+      startLabel.textContent = `Session ${index + 1} · Punch in`;
+      const startInput = document.createElement("input");
+      startInput.type = "time";
+      startInput.value = s.start;
+      startInput.setAttribute("aria-label", `Session ${index + 1} punch in`);
+      startInput.addEventListener("change", () => {
+        s.start = startInput.value;
+        if (s.id === activeSessionId && !s.start) activeSessionId = null;
+        hideNotice(); renderSessions(); update();
+      });
+      startField.append(startLabel, startInput);
+
+      const endField = document.createElement("div");
+      endField.className = "field";
+      const endLabel = document.createElement("label");
+      endLabel.textContent = "Punch out";
+      const endInput = document.createElement("input");
+      endInput.type = "time";
+      endInput.value = s.end;
+      endInput.setAttribute("aria-label", `Session ${index + 1} punch out`);
+      endInput.disabled = s.id === activeSessionId;
+      endInput.addEventListener("change", () => {
+        s.end = endInput.value;
+        hideNotice(); renderSessions(); update();
+      });
+      endField.append(endLabel, endInput);
+
+      const deleteWrap = document.createElement("div");
+      deleteWrap.className = "delete-wrap";
+      const del = document.createElement("button");
+      del.className = "btn-danger";
+      del.type = "button";
+      del.textContent = "Remove";
+      del.addEventListener("click", () => {
+        if (s.id === activeSessionId) activeSessionId = null;
+        sessions = sessions.filter(item => item.id !== s.id);
+        renderSessions(); update();
+      });
+      deleteWrap.appendChild(del);
+
+      const meta = document.createElement("div");
+      meta.className = "session-meta";
+      const tag = document.createElement("span");
+      tag.textContent = s.id === activeSessionId ? "● Live session" : (s.live ? "Live-tracked session" : "Manual entry");
+      const length = document.createElement("strong");
+      length.textContent = sessionDurationText(s);
+      meta.append(tag, length);
+      row.append(startField, endField, deleteWrap, meta);
+      sessionList.appendChild(row);
+    });
+    $("punchInBtn").disabled = activeSessionId !== null;
+    $("punchOutBtn").disabled = activeSessionId === null;
+  }
+  function sessionDurationText(s) {
+    const start = parseTime(s.start);
+    if (start === null) return "Enter a punch-in time";
+    let end = s.id === activeSessionId ? nowMinutes() : parseTime(s.end);
+    if (end === null) return "Awaiting punch-out";
+    if (end < start) end += 1440;
+    return duration(end - start);
+  }
+
+  function getCalculated() {
+    const target = parseTarget($("requiredHours").value);
+    if (!Number.isFinite(target)) return { error: "Enter a valid target, such as 9 or 8:30." };
+    const entries = [];
+    for (const s of sessions) {
+      const start = parseTime(s.start);
+      const end = s.id === activeSessionId ? nowMinutes() : parseTime(s.end);
+      if (s.start && start === null) return { error: "One of the punch-in times is invalid." };
+      if (s.end && parseTime(s.end) === null) return { error: "One of the punch-out times is invalid." };
+      if (start === null && end !== null) return { error: "A punch-out exists without a punch-in. Add the missing punch-in time." };
+      if (start === null) continue;
+      entries.push({ id: s.id, start, end, open: s.id === activeSessionId || (!s.end && s.id !== activeSessionId), rawStart: s.start });
+    }
+    entries.sort((a,b) => a.start - b.start);
+
+    let previousStart = null, previousEnd = null, totalWorked = 0, breakMinutes = 0;
+    let firstStart = null, lastEnd = null, active = null, completedEnd = null;
+    for (const e of entries) {
+      let start = e.start;
+      // Normalize times in chronological session order, including shifts crossing midnight.
+      if (previousStart !== null) {
+        while (start < previousStart) start += 1440;
+      }
+      let end = e.end;
+      if (end !== null) {
+        while (end < start) end += 1440;
+      }
+      if (firstStart === null || start < firstStart) firstStart = start;
+      if (e.open) {
+        if (active) return { error: "Only one open punch-in session is supported at a time." };
+        active = { ...e, start, end: nowMinutes() };
+        let activeEnd = active.end;
+        while (activeEnd < start) activeEnd += 1440;
+        active.end = activeEnd;
+        end = activeEnd;
+      }
+      if (previousEnd !== null && start < previousEnd - 0.5) {
+        return { error: "Your sessions overlap. Adjust the times so each work period is counted only once." };
+      }
+      if (previousEnd !== null && start > previousEnd) breakMinutes += start - previousEnd;
+      if (end !== null) {
+        totalWorked += Math.max(0, end - start);
+        previousEnd = end;
+        previousStart = start;
+        lastEnd = end;
+        if (!e.open) completedEnd = end;
+      }
+    }
+    const remaining = Math.max(0, target - totalWorked);
+    const overtime = Math.max(0, totalWorked - target);
+    let prediction = null;
+    if (active) {
+      prediction = active.end + remaining;
+    } else if (remaining > 0 && entries.length) {
+      // If the last session is closed, estimate from the current time, since the employee would need to resume work.
+      prediction = nowMinutes() + remaining;
+    }
+    const rounding = Number($("rounding").value) || 1;
+    if (prediction !== null && rounding > 1) prediction = Math.ceil(prediction / rounding) * rounding;
+    return { target, totalWorked, remaining, overtime, breakMinutes, firstStart, lastEnd, prediction, active, entries, completedEnd };
+  }
+
+  function update() {
+    const result = getCalculated();
+    if (result.error) {
+      showNotice(result.error, "error");
+      $("estimateTime").textContent = "Check entries";
+      $("estimateCaption").textContent = "Fix the highlighted timing issue to calculate a reliable estimate.";
+      $("statusText").textContent = "Needs attention";
+      $("statusDot").style.background = "var(--red)";
+      return;
+    }
+    hideNotice();
+    const { target, totalWorked, remaining, overtime, breakMinutes, firstStart, lastEnd, prediction, active } = result;
+    const percent = Math.min(100, Math.round(totalWorked / target * 100));
+    $("workedMetric").textContent = duration(totalWorked);
+    $("remainingMetric").textContent = duration(remaining);
+    $("breakMetric").textContent = duration(breakMinutes);
+    $("overtimeMetric").textContent = duration(overtime);
+    $("progressPercent").textContent = `${percent}% complete`;
+    $("progressFill").style.width = `${percent}%`;
+    $("progressBar").setAttribute("aria-valuenow", String(percent));
+    $("progressStart").textContent = `${duration(totalWorked)} completed`;
+    $("progressEnd").textContent = `Target: ${duration(target)}`;
+    $("firstInSummary").textContent = firstStart === null ? "—" : formatTime(firstStart);
+    $("lastOutSummary").textContent = active ? "Session in progress" : (lastEnd === null ? "—" : formatTime(lastEnd));
+    $("elapsedSummary").textContent = firstStart === null || lastEnd === null ? "0h 00m" : duration(Math.max(0, lastEnd - firstStart));
+    $("targetSummary").textContent = duration(target);
+
+    if (remaining <= 0) {
+      $("estimateTime").textContent = active ? formatTime(active.end) : (lastEnd === null ? "Target complete" : formatTime(lastEnd));
+      $("estimateCaption").textContent = overtime > 0 ? `${duration(overtime)} overtime recorded.` : "Your required work hours are complete.";
+      $("statusText").textContent = overtime > 0 ? "Daily target exceeded" : "Daily target reached";
+      $("statusDot").style.background = "var(--green)";
+    } else if (active && prediction !== null) {
+      $("estimateTime").textContent = formatTime(prediction);
+      $("estimateCaption").textContent = `${duration(remaining)} of work remaining${Number($("rounding").value) > 1 ? ` · rounded to ${$("rounding").value}-minute increments` : ""}.`;
+      $("statusText").textContent = "Live session in progress";
+      $("statusDot").style.background = "var(--green)";
+    } else if (sessions.length) {
+      $("estimateTime").textContent = formatTime(nowMinutes() + remaining);
+      $("estimateCaption").textContent = `Approximate time if you resume working now · ${duration(remaining)} remaining.`;
+      $("statusText").textContent = "Waiting for next punch-in";
+      $("statusDot").style.background = "var(--amber)";
+    } else {
+      $("estimateTime").textContent = "— — : — —";
+      $("estimateCaption").textContent = "Punch in or add a session to calculate your leaving time.";
+      $("statusText").textContent = "Ready to calculate";
+      $("statusDot").style.background = "var(--green)";
+    }
+  }
+
+  function punchIn() {
+    if (activeSessionId !== null) return;
+    const date = new Date();
+    const session = addSession(timeInputValue(date), "", { live: true });
+    activeSessionId = session.id;
+    hideNotice(); renderSessions(); update();
+  }
+  function punchOut() {
+    if (activeSessionId === null) return;
+    const session = sessions.find(s => s.id === activeSessionId);
+    if (!session) { activeSessionId = null; update(); return; }
+    const start = parseTime(session.start);
+    const now = new Date();
+    const nowVal = nowMinutes();
+    if (start !== null && nowVal < start && now.getDate() !== new Date().getDate()) {
+      // Kept intentionally simple; date-aware overnight normalization is handled by calculation.
+    }
+    session.end = timeInputValue(now);
+    activeSessionId = null;
+    hideNotice(); renderSessions(); update();
+  }
+
+  $("punchInBtn").addEventListener("click", punchIn);
+  $("punchOutBtn").addEventListener("click", punchOut);
+  $("addSessionBtn").addEventListener("click", () => { addSession(); hideNotice(); });
+  $("calculateBtn").addEventListener("click", update);
+  $("requiredHours").addEventListener("input", update);
+  $("timeFormat").addEventListener("change", update);
+  $("rounding").addEventListener("change", update);
+  $("clearBtn").addEventListener("click", () => {
+    if (!confirm("Clear all punch sessions for this page? This cannot be undone.")) return;
+    sessions = []; activeSessionId = null; nextId = 1;
+    hideNotice(); renderSessions(); update();
+  });
+
+  function clockTick() {
+    const now = new Date();
+    $("currentClock").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: $("timeFormat").value === "12" });
+    $("currentDate").textContent = now.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+    $("todayLabel").textContent = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    if (activeSessionId !== null) update();
+  }
+  renderSessions();
+  update();
+  clockTick();
+  timerId = window.setInterval(clockTick, 1000);
+})();
+</script>
 </body>
-
 </html>
